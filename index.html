@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Vehículos</title>
+    <style>
+          /* Estilo para el botón "Iniciar Sesión" fuera del formulario */
+        #btn-show-login {
+            background-color: rgba(0, 0, 0, 0.1);; /* Color de fondo */
+            color: rgba(0, 0, 0, 0.1);;             /* Color del texto */
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            }
+
+        #btn-show-login:hover {
+            background-color: #388e3c; /* Color al pasar el mouse */
+            }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #380c0c;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .product-stock {
+            color: #555;
+            font-size: 16px;
+        }
+        .login-form {
+            display: none;
+            max-width: 300px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1f0202;
+            border: 1px solid #1f0303;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .login-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #1b0303;
+            border-radius: 5px;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #010c18;
+            color: rgb(17, 1, 1);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .login-form button:hover {
+            background-color: #0056b3;
+
+        }
+        .login-form button {
+            background-color: #007BFF; /* Cambia este valor */
+            color: white; /* Color del texto */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-form button:hover {
+            background-color: #0056b3; /* Cambia el color al pasar el mouse */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>CATÁLOGO DE VEHÍCULOS</h1>
+    <button id="btn-show-login" onclick="mostrarLogin()">Iniciar Sesión</button>
+
+    <div class="login-form" id="loginForm">
+        <input type="text" id="username" placeholder="Usuario" />
+        <input type="password" id="password" placeholder="Contraseña" />
+        <button onclick="login()">Iniciar Sesión</button>
+    </div>
+    <div class="product-grid" id="productos"></div>
+
+    <script>
+        function mostrarLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    alert("Inicio de sesión exitoso");
+                    window.location.href = '/admin-dashboard';
+                } else {
+                    alert(resultado.mensaje);
+                }
+            } catch (error) {
+                console.error("Error al iniciar sesión:", error);
+            }
+        }
+
+        async function cargarProductos() {
+            try {
+                const response = await fetch('http://localhost:3000/api/productos');
+                const productos = await response.json();
+
+                const contenedor = document.getElementById('productos');
+                contenedor.innerHTML = '';
+
+                productos.forEach(producto => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <img src="${producto.imagen}" alt="${producto.nombre}">
+                        <div class="product-name">${producto.nombre}</div>
+                        <div class="product-stock">Stock: <span id="stock-${producto.id}">${producto.stock}</span> unidades</div>
+                    `;
+                    contenedor.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error al cargar productos:", error);
+            }
+        }
+
+        window.onload = () => cargarProductos();
+    </script>
+</body>
+</html>

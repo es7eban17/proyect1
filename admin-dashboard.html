@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .product-stock {
+            color: #555;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Panel de Administración</h1>
+    <div class="product-grid" id="productos"></div>
+
+    <script>
+        async function cargarProductos() {
+            try {
+                const response = await fetch('http://localhost:3000/api/productos');
+                const productos = await response.json();
+
+                const contenedor = document.getElementById('productos');
+                contenedor.innerHTML = '';
+
+                productos.forEach(producto => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <img src="${producto.imagen}" alt="${producto.nombre}">
+                        <div class="product-name">${producto.nombre}</div>
+                        <div class="product-stock">Stock: <span id="stock-${producto.id}">${producto.stock}</span> unidades</div>
+                        <div class="update-section">
+                            <input type="number" id="nuevoStock-${producto.id}" placeholder="Nuevo stock" />
+                            <button onclick="actualizarStock(${producto.id})">Actualizar</button>
+                        </div>
+                    `;
+                    contenedor.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error al cargar productos:", error);
+            }
+        }
+
+        async function actualizarStock(id) {
+            const nuevoStock = document.getElementById(`nuevoStock-${id}`).value;
+
+            if (nuevoStock === '') {
+                alert("Por favor ingrese un nuevo stock");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/productos/actualizar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, nuevoStock: parseInt(nuevoStock) })
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    document.getElementById(`stock-${id}`).innerText = resultado.producto.stock;
+                    alert("Stock actualizado correctamente");
+                } else {
+                    alert(resultado.mensaje);
+                }
+            } catch (error) {
+                console.error("Error al actualizar stock:", error);
+            }
+        }
+
+        window.onload = () => cargarProductos();
+    </script>
+</body>
+</html>
